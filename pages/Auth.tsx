@@ -40,11 +40,7 @@ const AuthPage = () => {
             <span className="text-sm font-medium">Back</span>
           </button>
           <div className="flex items-center gap-2 mb-8">
-            <img
-              src="../assets/add-logo.png"
-              alt="CtrlCheck Logo"
-              className="h-8 w-8"
-            />
+            <img src="/add-logo.png" alt="CtrlCheck Logo" className="h-8 w-8" />
             <span className="font-bold text-lg tracking-tight">CtrlCheck</span>
           </div>
           <h2 className="text-5xl font-bold leading-tight mb-6">

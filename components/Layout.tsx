@@ -61,11 +61,7 @@ export const DashboardLayout: React.FC<LayoutProps> = ({ children }) => {
       {/* Sidebar Desktop */}
       <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 border-r border-slate-200 bg-white/80 backdrop-blur-xl z-30">
         <div className="p-6 flex items-center gap-2">
-          <img
-            src="../assets/add-logo.png"
-            alt="CtrlCheck Logo"
-            className="h-8 w-8"
-          />
+          <img src="/add-logo.png" alt="CtrlCheck Logo" className="h-8 w-8" />
           <span className="font-bold text-lg tracking-tight">CtrlCheck</span>
         </div>
 

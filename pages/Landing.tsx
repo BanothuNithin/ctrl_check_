@@ -30,11 +30,7 @@ const LandingPage = () => {
       <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img
-              src="../assets/add-logo.png"
-              alt="CtrlCheck Logo"
-              className="h-8 w-8"
-            />
+            <img src="/add-logo.png" alt="CtrlCheck Logo" className="h-8 w-8" />
             <span className="font-bold text-lg tracking-tight">CtrlCheck</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
@@ -122,7 +118,7 @@ const LandingPage = () => {
             <div className="rounded-2xl bg-slate-900/5 p-2 ring-1 ring-inset ring-slate-900/10 lg:rounded-3xl lg:p-4">
               <div className="rounded-xl bg-white shadow-2xl ring-1 ring-slate-900/10 overflow-hidden">
                 <img
-                  src="../assets/ai-agent.jpg"
+                  src="/ai-agent.jpg"
                   alt="Dashboard Preview"
                   className="w-full h-auto opacity-90"
                 />
