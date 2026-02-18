@@ -135,17 +135,17 @@ export const Modal = ({ isOpen, onClose, title, children, className }: { isOpen:
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
-            onClick={onClose}
-          />
+        <motion.div 
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center"
+          onClick={onClose}
+        >
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 20 }} 
             animate={{ opacity: 1, scale: 1, y: 0 }} 
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className={cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-slate-200 bg-white p-6 shadow-xl duration-200 sm:rounded-2xl", className)}
+            className={cn("grid w-[90%] max-w-lg gap-4 border border-slate-200 bg-white p-6 shadow-xl duration-200 rounded-2xl max-h-[85vh] overflow-y-auto", className)}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col space-y-1.5 text-center sm:text-left">
               <div className="flex items-center justify-between">
@@ -157,7 +157,7 @@ export const Modal = ({ isOpen, onClose, title, children, className }: { isOpen:
             </div>
             {children}
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );

@@ -208,11 +208,29 @@ const WorkflowBuilder = () => {
     type: NodeType,
     position?: { x: number; y: number }
   ) => {
+    let finalX = 100;
+    let finalY = 100;
+
+    if (position) {
+      // Use provided position
+      finalX = position.x;
+      finalY = position.y;
+    } else {
+      // Find rightmost node to position new node after it
+      if (nodes.length > 0) {
+        const rightmostNode = nodes.reduce((max, node) =>
+          node.x > max.x ? node : max
+        );
+        finalX = rightmostNode.x + 350;
+        finalY = rightmostNode.y;
+      }
+    }
+
     const newNode: Node = {
       id: Math.random().toString(36).substr(2, 9),
       type,
-      x: position ? position.x : 100 + Math.random() * 200,
-      y: position ? position.y : 100 + Math.random() * 200,
+      x: finalX,
+      y: finalY,
       data: {
         label: nodeLibrary.find((n) => n.type === type)?.label || "New Node",
       },
@@ -293,46 +311,130 @@ const WorkflowBuilder = () => {
           lowerText.includes(n.type)
       );
       if (typeMatch) {
+        // Find rightmost node to position new node after it
+        let posX = 300;
+        let posY = 300;
+        if (nodes.length > 0) {
+          const rightmostNode = nodes.reduce((max, node) =>
+            node.x > max.x ? node : max
+          );
+          posX = rightmostNode.x + 350;
+          posY = rightmostNode.y;
+        }
+
         const newNode = handleAddNode(typeMatch.type as NodeType, {
-          x: 300,
-          y: 300,
+          x: posX,
+          y: posY,
         });
+
+        // Auto-connect to the last node if it exists
+        if (nodes.length > 0) {
+          const previousNode = nodes[nodes.length - 1];
+          setEdges((prev) => [
+            ...prev,
+            {
+              id: `e-${previousNode.id}-${newNode.id}-${Date.now()}`,
+              source: previousNode.id,
+              target: newNode.id,
+            },
+          ]);
+          return `I've added a **${typeMatch.label}** node and connected it to **${previousNode.data.label}** for you.`;
+        }
         return `I've added a **${typeMatch.label}** node for you.`;
       }
     }
 
     // 2. Connect Nodes
     if (lowerText.includes("connect")) {
-      // Simplistic name matching
-      const nodeNames = nodes.map((n) => ({
+      // Enhanced node matching with type and label
+      const nodeMatches = nodes.map((n) => ({
         id: n.id,
-        name: n.data.label.toLowerCase(),
+        label: n.data.label,
+        type: n.type,
+        lowerLabel: n.data.label.toLowerCase(),
+        lowerType: n.type.toLowerCase(),
       }));
-      // Try to find two names in the string
-      let source: string | null = null;
-      let target: string | null = null;
 
-      for (const n of nodeNames) {
-        if (lowerText.includes(n.name)) {
-          if (!source) source = n.id;
-          else if (!target && n.id !== source) target = n.id;
+      const foundNodes: Array<{ id: string; label: string }> = [];
+
+      // First pass: match by exact label or type name
+      for (const node of nodeMatches) {
+        if (
+          lowerText.includes(node.lowerLabel) ||
+          lowerText.includes(node.lowerType)
+        ) {
+          // Avoid duplicates
+          if (!foundNodes.find((fn) => fn.id === node.id)) {
+            foundNodes.push({ id: node.id, label: node.label });
+          }
+          if (foundNodes.length === 2) break;
         }
       }
 
-      if (source && target) {
+      if (foundNodes.length === 2) {
+        const [source, target] = foundNodes;
         setEdges((prev) => [
           ...prev,
           {
-            id: `e-${source}-${target}-${Date.now()}`,
-            source: source!,
-            target: target!,
+            id: `e-${source.id}-${target.id}-${Date.now()}`,
+            source: source.id,
+            target: target.id,
           },
         ]);
-        return `Connected **${
-          nodes.find((n) => n.id === source)?.data.label
-        }** to **${nodes.find((n) => n.id === target)?.data.label}**.`;
+        return `Connected **${source.label}** to **${target.label}**.`;
       }
-      return "I couldn't identify which nodes to connect. Please make sure the node names are unique and mentioned clearly.";
+
+      // If we have exactly 1 node, look for "to" pattern
+      if (foundNodes.length === 1) {
+        const firstNodeMatch = nodeMatches.find(n => n.id === foundNodes[0].id);
+        const matchedBy = lowerText.includes(firstNodeMatch!.lowerLabel) 
+          ? firstNodeMatch!.lowerLabel 
+          : firstNodeMatch!.lowerType;
+        const afterTo = lowerText.split(matchedBy)[1];
+        if (afterTo && afterTo.includes("to")) {
+          for (const node of nodeMatches) {
+            if (
+              node.id !== foundNodes[0].id &&
+              (afterTo.includes(node.lowerLabel) ||
+                afterTo.includes(node.lowerType))
+            ) {
+              setEdges((prev) => [
+                ...prev,
+                {
+                  id: `e-${foundNodes[0].id}-${node.id}-${Date.now()}`,
+                  source: foundNodes[0].id,
+                  target: node.id,
+                },
+              ]);
+              return `Connected **${foundNodes[0].label}** to **${node.label}**.`;
+            }
+          }
+        }
+      }
+
+      // Also try number/position-based matching if we have at least 2 nodes
+      if (nodes.length >= 2 && foundNodes.length === 0) {
+        // If user says "connect first to second" or similar
+        if (
+          (lowerText.includes("first") && lowerText.includes("second")) ||
+          (lowerText.includes("first") && lowerText.includes("last"))
+        ) {
+          const source = nodes[0];
+          const target =
+            lowerText.includes("last") ? nodes[nodes.length - 1] : nodes[1];
+          setEdges((prev) => [
+            ...prev,
+            {
+              id: `e-${source.id}-${target.id}-${Date.now()}`,
+              source: source.id,
+              target: target.id,
+            },
+          ]);
+          return `Connected **${source.data.label}** to **${target.data.label}**.`;
+        }
+      }
+
+      return "I couldn't identify which nodes to connect. Please mention node types (e.g., 'connect Gmail to Slack') or use positions (e.g., 'connect first to second').";
     }
 
     // 3. Run Workflow
@@ -365,9 +467,10 @@ const WorkflowBuilder = () => {
     setChatMessages((prev) => [...prev, { role: "user", text: userMsg }]);
 
     // Simulate "Thinking"
-    setTimeout(async () => {
-      const response = await processChatCommand(userMsg);
-      setChatMessages((prev) => [...prev, { role: "model", text: response }]);
+    setTimeout(() => {
+      processChatCommand(userMsg).then((response) => {
+        setChatMessages((prev) => [...prev, { role: "model", text: response }]);
+      });
     }, 600);
   };
 
