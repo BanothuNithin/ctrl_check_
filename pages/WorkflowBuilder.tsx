@@ -171,6 +171,24 @@ const WorkflowBuilder = () => {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Load template workflow from localStorage on mount
+  useEffect(() => {
+    const templateWorkflow = localStorage.getItem('templateWorkflow');
+    if (templateWorkflow) {
+      try {
+        const parsed = JSON.parse(templateWorkflow);
+        if (parsed.nodes && parsed.edges) {
+          setNodes(parsed.nodes);
+          setEdges(parsed.edges);
+          // Clear the templateWorkflow from localStorage after loading
+          localStorage.removeItem('templateWorkflow');
+        }
+      } catch (error) {
+        console.error('Failed to load template workflow:', error);
+      }
+    }
+  }, []);
+
   // --- Helpers ---
   const getNodeIcon = (type: string) => {
     const n = nodeLibrary.find((n) => n.type === type);
@@ -762,13 +780,16 @@ const WorkflowBuilder = () => {
         <AnimatePresence>
           {!isChatOpen && (
             <motion.button
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0 }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setIsChatOpen(true)}
-              className="h-14 w-14 bg-slate-900 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-slate-800 hover:scale-105 transition-all"
+              className="h-16 w-16 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-full shadow-2xl shadow-slate-900/30 flex items-center justify-center hover:shadow-slate-900/50 transition-all border border-slate-700"
+              title="Open AI Assistant"
             >
-              <Bot className="h-7 w-7" />
+              <Bot className="h-8 w-8" />
             </motion.button>
           )}
         </AnimatePresence>
